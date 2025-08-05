@@ -1,5 +1,7 @@
 import User from "../models/user.model.js";
 import Notification from "../models/notification.js";
+import {v2 as cloudinary} from 'cloudinary';
+import bcrypt from "bcryptjs";
 
 
 export const GetUserProfile = async (req, res) => {
@@ -83,14 +85,76 @@ export const GetSuggestedUsers = async (req, res) => {
 
 export const UpdateUserProfile = async (req, res) => {
     try {
-        const {username,name,email,bio,password,newPassword}  = req.body;
+
+        let {username,name,email,bio,currentPassword,newPassword}  = req.body;
         let { coverPicture, profilePicture} = req.body;
         
         const user = await User.findById(req.id);
 
         if(!user) return res.status(404).json({message: "User not found"});
+
+      
+        if((!newPassword && currentPassword) || (!currentPassword && newPassword)){
+            return res.status(400).json({message: "Please provide both current and new password"});
+        }
+
+        if(currentPassword && newPassword){
+            const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+            if(!isPasswordCorrect) return res.status(400).json({message: "Invalid password"});
+
+            if(newPassword.length < 6) return res.status(400).json({message: "Password must be at least 8 characters long"});
+        }
+
+
+        if(profilePicture){     
+            
+            if(user.profilePicture){
+                const publicId = user.profilePicture.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+            
+
+            const uploadResponse = await cloudinary.uploader.upload(profilePicture)
+            profilePicture = uploadResponse.secure_url;
+        }
+
+        if(coverPicture){  
+
+            if(user.coverPicture){
+                const publicId = user.coverPicture.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+            const uploadResponse = await cloudinary.uploader.upload(coverPicture)
+            coverPicture = uploadResponse.secure_url;           
+        }
+
+
+        user.username = username;
+        user.name = name;
+        user.email = email;
+        user.bio = bio;
+
+        if (newPassword) {
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+        if (profilePicture) {
+            user.profilePicture = profilePicture;
+        }
+        if (coverPicture) {
+            user.coverPicture = coverPicture;
+        }
+
+        const updatedUser = await user.save();
+
+        const userResponse = updatedUser.toObject();
+        delete userResponse.password;
+
+        return res.status(200).json(userResponse);
+
+
         
     } catch (error) {
+
         console.log(`Error updating user profile: ${error.message}`);
         return res.status(500).json({message: error.message});
     }
