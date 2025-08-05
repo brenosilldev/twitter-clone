@@ -5,6 +5,8 @@ import { dbConnection } from './lib/db.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 // import path from 'path';
+import {v2 as cloudinary} from 'cloudinary';
+
 dotenv.config();
 
 const app = express();  // cria uma instância do express
@@ -14,13 +16,20 @@ const PORT = process.env.PORT || 4000;
 
 // const __dirname = path.resolve();
 
-app.use(express.json()); 
-app.use(cookieParser());
-app.use('/api', Routes) 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true,
 }))
+app.use(express.json({ limit: '100mb' })); 
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cookieParser());
+app.use('/api', Routes)
 
 // Configura o Express para servir arquivos estáticos da pasta build do frontend
 // Isso permite que o servidor sirva arquivos CSS, JS, imagens e outros recursos do React
