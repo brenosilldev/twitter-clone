@@ -8,6 +8,6 @@ const UserRouter = Router();
 UserRouter.get('/profile/:username', authMiddleware, GetUserProfile);
 UserRouter.post('/suggestions', authMiddleware, GetSuggestedUsers);
 UserRouter.post('/followers/:id', authMiddleware, FollowUnfollowUser);
-UserRouter.get('/update-profile', authMiddleware, UpdateUserProfile);
+UserRouter.post('/update-profile', authMiddleware, UpdateUserProfile);
 
 export default UserRouter;
