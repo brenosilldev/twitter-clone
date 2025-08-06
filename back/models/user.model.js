@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
         ref: "User",
     }],
     bio: {type: String, default: ""},
+    likesPost: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Post",
+            default: [],
+        }
+    ],
+   
 
 }, {timestamps: true});
 
