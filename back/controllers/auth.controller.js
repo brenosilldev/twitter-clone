@@ -102,6 +102,8 @@ export const getUser = async (req, res) => {
             followers: user.followers,
             following: user.following,
             bio: user.bio,
+            likesPost: user.likesPost,
+            posts: user.posts,
         });
 
     } catch (error) {
