@@ -9,7 +9,7 @@ export const GetUserProfile = async (req, res) => {
         const user = await User.findById(req.params.username);
 
         if(!user) return res.status(404).json({message: "User not found"});
-te
+
         return res.status(200).json(user);
     } catch (error) {
         console.log(`Error getting user profile: ${error.message}`);
@@ -149,7 +149,10 @@ export const UpdateUserProfile = async (req, res) => {
         const userResponse = updatedUser.toObject();
         delete userResponse.password;
 
-        return res.status(200).json(userResponse);
+        return res.status(200).json(userResponse.populated({
+            path: "likesPost",
+           
+        }));
 
 
         
